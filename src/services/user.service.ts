@@ -12,7 +12,7 @@ export class UserService {
     return users[0] || null;
   }
 
-  static async findUsers(user?: Partial<User>): Promise<User[] | null> {
+  static async findAll(user?: Partial<User>): Promise<User[] | null> {
     const sqlBuilder = new SqlBuilder();
 
     sqlBuilder.whereIf(!!user?.name, "name", "ILIKE", `%${user?.name}%`);

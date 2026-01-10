@@ -1,12 +1,11 @@
-import { Router, Request, Response } from "express";
-import { comparePassword } from "../core/crypt";
+import { Request, Response, Router } from "express";
 import { generateTokens, verifyRefreshToken } from "../core/jwt";
+import { Auth, RefreshToken } from "../models/entities/auth.entity";
 import { authSchema, refreshTokenSchema } from "../models/schemas/auth.schema";
 import { validateRequiredFields } from "../models/schemas/schema";
-import { users } from "../mocks/users.mock";
-import { Auth, RefreshToken } from "../models/entities/auth.entity";
-import { UserService } from "../services/user.service";
 import { AuthService } from "../services/auth.service";
+import { authMiddleware } from "../middlewares/auth.middleware";
+import { UserService } from "../services/user.service";
 
 const router = Router();
 
@@ -71,6 +70,19 @@ router.post("/refresh-token", (req, res) => {
   } catch {
     return res.status(401).json({ message: "Unauthorized." });
   }
+});
+
+/**
+ * GET /me
+ */
+router.get("/me", authMiddleware, async (req: Request, res: Response) => {
+  const user = await UserService.findUserById(req.user.id_user);
+
+  if (!user) {
+    return res.status(401).json({ message: "Invalid credentials." });
+  }
+
+  return res.json(user);
 });
 
 export default router;

@@ -31,7 +31,7 @@ interface UserQueryParams {
 router.get("/users", async (req: Request, res: Response) => {
   const { name } = req.query as UserQueryParams;
 
-  const users = await UserService.findUsers({ name });
+  const users = await UserService.findAll({ name });
 
   return res.status(200).json(users);
 });
@@ -50,7 +50,7 @@ router.post("/user", async (req: Request, res: Response) => {
 
   const { name, username, password, role, email } = req.body as User;
 
-  const users = await UserService.findUsers({ username });
+  const users = await UserService.findAll({ username });
 
   if (users && users.length > 0) {
     return res.status(409).json({ message: "Usuário já existe" });
