@@ -16,7 +16,7 @@ router.post("/login", async (req: Request, res: Response) => {
   const validation = validateRequiredFields(req.body, authSchema);
 
   if (validation.missingFields) {
-    return res.status(400).json(validation.message);
+    return res.status(400).json({ message: validation.message });
   }
 
   const { username, password } = req.body as Auth;
@@ -52,7 +52,7 @@ router.post("/refresh-token", (req, res) => {
   const validation = validateRequiredFields(req.body, refreshTokenSchema);
 
   if (validation.missingFields) {
-    return res.status(400).json(validation.message);
+    return res.status(400).json({ message: validation.message });
   }
 
   const { refreshToken } = req.body as RefreshToken;

@@ -1,6 +1,7 @@
 export type ValidationSchema<T> = {
   [K in keyof T]: {
     required?: boolean;
+    type?: "array";
   };
 };
 
@@ -11,8 +12,24 @@ export function validateRequiredFields<T>(
   const missingFields: string[] = [];
 
   for (const field in schema) {
-    if (schema[field]?.required && !body[field as keyof T]) {
+    const isRequired = schema[field]?.required;
+    const fieldValue = body[field as keyof T];
+    const hasValue = !!fieldValue;
+    const isArray = schema[field]?.type === "array";
+
+    if (isRequired && !hasValue) {
       missingFields.push(field);
+      continue;
+    }
+
+    if (
+      isArray &&
+      isRequired &&
+      hasValue &&
+      (fieldValue as Array<T>).length === 0
+    ) {
+      missingFields.push(field);
+      continue;
     }
   }
 

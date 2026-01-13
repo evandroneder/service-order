@@ -4,18 +4,17 @@ import { validateRequiredFields } from "../models/schemas/schema";
 import { Company } from "../models/tables/company.table";
 import { companies } from "../mocks/companies.mock";
 import { adminMiddleware } from "../middlewares/adm.middleware";
+import { CompanyService } from "../services/company.service";
 
 const router = Router();
-
-let nextId = 1;
 
 /**
  * GET /company/:id
  */
-router.get("/company/:id", (req: Request, res: Response) => {
+router.get("/company/:id", async (req: Request, res: Response) => {
   const id = Number(req.params.id);
 
-  const company = companies.find((c) => c.id_company === id);
+  const company = await CompanyService.findCompanyById(id);
 
   if (!company) {
     return res.status(404).json({ message: "Company not found" });
@@ -31,32 +30,22 @@ interface CompaniesQueryParams {
   name?: string;
   document?: string;
 }
-router.get("/companies", (req: Request, res: Response) => {
+router.get("/companies", async (req: Request, res: Response) => {
   const { name, document } = req.query as CompaniesQueryParams;
 
-  let result = companies;
+  const companies = await CompanyService.findCompanies({ name, document });
 
-  if (name) {
-    result = result.filter((c) =>
-      c.name.toLowerCase().includes(String(name).toLowerCase())
-    );
-  }
-
-  if (document) {
-    result = result.filter((c) => c.document.includes(String(document)));
-  }
-
-  return res.json(result);
+  return res.json(companies);
 });
 
 /**
  * POST /company
  */
-router.post("/company", (req: Request, res: Response) => {
+router.post("/company", async (req: Request, res: Response) => {
   const validation = validateRequiredFields<Company>(req.body, companySchema);
 
   if (validation.missingFields) {
-    return res.status(400).json(validation.message);
+    return res.status(400).json({ message: validation.message });
   }
 
   const {
@@ -68,19 +57,16 @@ router.post("/company", (req: Request, res: Response) => {
     number,
     complement,
     email,
-    logo,
+    logo_url,
   } = req.body as Company;
 
-  const documentIndex = companies.findIndex((u) => u.document === document);
+  const companies = await CompanyService.findCompanies({ document });
 
-  if (documentIndex === -1) {
-    return res
-      .status(404)
-      .json({ message: "Empresa já cadastrada com esse documento." });
+  if (companies.length > 0) {
+    return res.status(404).json({ message: "Empresa já cadastrada." });
   }
 
-  const newCompany: Company = {
-    id_company: nextId++,
+  const newCompany: Omit<Company, "id_company"> = {
     name,
     document,
     phone,
@@ -89,12 +75,12 @@ router.post("/company", (req: Request, res: Response) => {
     number,
     complement,
     email,
-    logo,
+    logo_url,
   };
 
-  companies.push(newCompany);
+  const company = await CompanyService.createCompany(newCompany);
 
-  return res.status(201).json(newCompany);
+  return res.status(201).json(company);
 });
 
 /**
@@ -104,7 +90,7 @@ router.patch("/company/:id", (req: Request, res: Response) => {
   const validation = validateRequiredFields<Company>(req.body, companySchema);
 
   if (validation.missingFields) {
-    return res.status(400).json(validation.message);
+    return res.status(400).json({ message: validation.message });
   }
 
   const id = Number(req.params.id);
@@ -124,7 +110,7 @@ router.patch("/company/:id", (req: Request, res: Response) => {
     number,
     complement,
     email,
-    logo,
+    logo_url,
   } = req.body as Partial<Company>;
 
   companies[index] = {
@@ -137,7 +123,7 @@ router.patch("/company/:id", (req: Request, res: Response) => {
     ...(number !== undefined && { number }),
     ...(complement !== undefined && { complement }),
     ...(email !== undefined && { email }),
-    ...(logo !== undefined && { logo }),
+    ...(logo_url !== undefined && { logo_url }),
   };
 
   return res.json(companies[index]);
@@ -149,17 +135,10 @@ router.patch("/company/:id", (req: Request, res: Response) => {
 router.delete(
   "/company/:id",
   adminMiddleware,
-  (req: Request, res: Response) => {
+  async (req: Request, res: Response) => {
     const id = Number(req.params.id);
 
-    const index = companies.findIndex((c) => c.id_company === id);
-
-    if (index === -1) {
-      return res.status(404).json({ message: "Company not found" });
-    }
-
-    companies.splice(index, 1);
-
+    await CompanyService.deleteCompany(id);
     return res.status(204).send();
   }
 );

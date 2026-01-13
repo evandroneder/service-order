@@ -15,5 +15,5 @@ export const companySchema: ValidationSchema<Company> = {
   email: { required: true },
 
   complement: { required: false },
-  logo: { required: false },
+  logo_url: { required: false },
 };

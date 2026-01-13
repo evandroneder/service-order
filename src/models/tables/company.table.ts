@@ -8,5 +8,5 @@ export interface Company {
   number: number;
   complement?: string;
   email: string;
-  logo?: string;
+  logo_url?: string;
 }
