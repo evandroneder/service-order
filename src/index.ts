@@ -5,7 +5,8 @@ import "./core/database";
 import "./core/env";
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT;
+const HOST = process.env.HOST;
 
 import authRoutes from "./routes/auth.route";
 import clientRoutes from "./routes/client.route";
@@ -15,8 +16,8 @@ import userRoutes from "./routes/user.route";
 
 app.use(
   cors({
-    origin: "http://localhost:5173", // front (Vite)
-    credentials: true, // se usar cookies / refresh token
+    origin: HOST,
+    credentials: true,
   })
 );
 
@@ -27,6 +28,10 @@ app.use("/", serviceOrderRoutes);
 app.use("/", companyRoutes);
 app.use("/", clientRoutes);
 app.use("/", userRoutes);
+
+app.get("/health", (_, res) => {
+  res.json({ status: "ok" });
+});
 
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
