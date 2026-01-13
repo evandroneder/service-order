@@ -1,5 +1,4 @@
 import { Request, Response, Router } from "express";
-import { adminMiddleware } from "../middlewares/adm.middleware";
 import { authMiddleware } from "../middlewares/auth.middleware";
 import { serviceOrders } from "../mocks/service-orders.mock";
 import { validateRequiredFields } from "../models/schemas/schema";
@@ -17,35 +16,45 @@ const router = Router();
 /**
  * GET /service-order/:id
  */
-router.get("/service-order/:id", async (req: Request, res: Response) => {
-  const id = Number(req.params.id);
+router.get(
+  "/service-order/:id",
+  authMiddleware,
+  async (req: Request, res: Response) => {
+    const id = Number(req.params.id);
 
-  const serviceOrder = await ServiceOrderService.findOrderById(id);
+    const serviceOrder = await ServiceOrderService.findOrderById(id);
 
-  if (!serviceOrder) {
-    return res.status(404).json({ message: "Service order not found" });
+    if (!serviceOrder) {
+      return res.status(404).json({ message: "Service order not found" });
+    }
+
+    const company = await CompanyService.findCompanyById(
+      serviceOrder.id_company
+    );
+
+    const client = await ClientService.findClientById(serviceOrder.id_client);
+
+    return res.json({
+      ...serviceOrder,
+      company,
+      client,
+    });
   }
-
-  const company = await CompanyService.findCompanyById(serviceOrder.id_company);
-
-  const client = await ClientService.findClientById(serviceOrder.id_client);
-
-  return res.json({
-    ...serviceOrder,
-    company,
-    client,
-  });
-});
+);
 
 /**
  * GET /service-orders?code=
  */
 
-router.get("/service-orders", async (req: Request, res: Response) => {
-  const orders = await ServiceOrderService.findAll();
+router.get(
+  "/service-orders",
+  authMiddleware,
+  async (req: Request, res: Response) => {
+    const orders = await ServiceOrderService.findAll();
 
-  return res.json(orders);
-});
+    return res.json(orders);
+  }
+);
 
 /**
  * POST /service-order
@@ -81,41 +90,45 @@ router.post(
 /**
  * PATCH /service-order/:id
  */
-router.patch("/service-order/:id", async (req: Request, res: Response) => {
-  const validation = validateRequiredFields<ServiceOrder>(
-    req.body,
-    serviceOrderUpdateSchema
-  );
+router.patch(
+  "/service-order/:id",
+  authMiddleware,
+  async (req: Request, res: Response) => {
+    const validation = validateRequiredFields<ServiceOrder>(
+      req.body,
+      serviceOrderUpdateSchema
+    );
 
-  if (validation.missingFields) {
-    return res.status(400).json({ message: validation.message });
+    if (validation.missingFields) {
+      return res.status(400).json({ message: validation.message });
+    }
+
+    const id = Number(req.params.id);
+
+    const serviceOrder = await ServiceOrderService.findOrderById(id);
+
+    if (!serviceOrder) {
+      return res.status(404).json({ message: "Service order not found" });
+    }
+
+    const { description, products } = req.body as Partial<ServiceOrder>;
+
+    const updated = await ServiceOrderService.update({
+      id_service_order: id,
+      description,
+      products,
+    });
+
+    return res.json(updated);
   }
-
-  const id = Number(req.params.id);
-
-  const serviceOrder = await ServiceOrderService.findOrderById(id);
-
-  if (!serviceOrder) {
-    return res.status(404).json({ message: "Service order not found" });
-  }
-
-  const { description, products } = req.body as Partial<ServiceOrder>;
-
-  const updated = await ServiceOrderService.update({
-    id_service_order: id,
-    description,
-    products,
-  });
-
-  return res.json(updated);
-});
+);
 
 /**
  * DELETE /service-order/:id
  */
 router.delete(
   "/service-order/:id",
-  adminMiddleware,
+  authMiddleware,
   (req: Request, res: Response) => {
     const id = Number(req.params.id);
 

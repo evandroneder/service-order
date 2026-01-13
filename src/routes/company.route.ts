@@ -1,9 +1,9 @@
-import { Router, Request, Response } from "express";
+import { Request, Response, Router } from "express";
+import { authMiddleware } from "../middlewares/auth.middleware";
+import { companies } from "../mocks/companies.mock";
 import { companySchema } from "../models/schemas/company.schema";
 import { validateRequiredFields } from "../models/schemas/schema";
 import { Company } from "../models/tables/company.table";
-import { companies } from "../mocks/companies.mock";
-import { adminMiddleware } from "../middlewares/adm.middleware";
 import { CompanyService } from "../services/company.service";
 
 const router = Router();
@@ -11,17 +11,21 @@ const router = Router();
 /**
  * GET /company/:id
  */
-router.get("/company/:id", async (req: Request, res: Response) => {
-  const id = Number(req.params.id);
+router.get(
+  "/company/:id",
+  authMiddleware,
+  async (req: Request, res: Response) => {
+    const id = Number(req.params.id);
 
-  const company = await CompanyService.findCompanyById(id);
+    const company = await CompanyService.findCompanyById(id);
 
-  if (!company) {
-    return res.status(404).json({ message: "Company not found" });
+    if (!company) {
+      return res.status(404).json({ message: "Company not found" });
+    }
+
+    return res.json(company);
   }
-
-  return res.json(company);
-});
+);
 
 /**
  * GET /companies?name=&document=
@@ -30,18 +34,22 @@ interface CompaniesQueryParams {
   name?: string;
   document?: string;
 }
-router.get("/companies", async (req: Request, res: Response) => {
-  const { name, document } = req.query as CompaniesQueryParams;
+router.get(
+  "/companies",
+  authMiddleware,
+  async (req: Request, res: Response) => {
+    const { name, document } = req.query as CompaniesQueryParams;
 
-  const companies = await CompanyService.findCompanies({ name, document });
+    const companies = await CompanyService.findCompanies({ name, document });
 
-  return res.json(companies);
-});
+    return res.json(companies);
+  }
+);
 
 /**
  * POST /company
  */
-router.post("/company", async (req: Request, res: Response) => {
+router.post("/company", authMiddleware, async (req: Request, res: Response) => {
   const validation = validateRequiredFields<Company>(req.body, companySchema);
 
   if (validation.missingFields) {
@@ -86,7 +94,7 @@ router.post("/company", async (req: Request, res: Response) => {
 /**
  * PATCH /company/:id
  */
-router.patch("/company/:id", (req: Request, res: Response) => {
+router.patch("/company/:id", authMiddleware, (req: Request, res: Response) => {
   const validation = validateRequiredFields<Company>(req.body, companySchema);
 
   if (validation.missingFields) {
@@ -134,7 +142,7 @@ router.patch("/company/:id", (req: Request, res: Response) => {
  */
 router.delete(
   "/company/:id",
-  adminMiddleware,
+  authMiddleware,
   async (req: Request, res: Response) => {
     const id = Number(req.params.id);
 

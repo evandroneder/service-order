@@ -1,10 +1,9 @@
-import { Router, Request, Response } from "express";
-import { validateRequiredFields } from "../models/schemas/schema";
-import { clientSchema } from "../models/schemas/client.schema";
-import { Client } from "../models/tables/client.table";
-import { clients } from "../mocks/clients.mock";
-import { adminMiddleware } from "../middlewares/adm.middleware";
+import { Request, Response, Router } from "express";
 import { authMiddleware } from "../middlewares/auth.middleware";
+import { clients } from "../mocks/clients.mock";
+import { clientSchema } from "../models/schemas/client.schema";
+import { validateRequiredFields } from "../models/schemas/schema";
+import { Client } from "../models/tables/client.table";
 import { ClientService } from "../services/client.service";
 
 const router = Router();
@@ -12,32 +11,40 @@ const router = Router();
 /**
  * GET /client/by-document
  */
-router.get("/client/by-document", async (req: Request, res: Response) => {
-  const { document } = req.query as { document: string };
+router.get(
+  "/client/by-document",
+  authMiddleware,
+  async (req: Request, res: Response) => {
+    const { document } = req.query as { document: string };
 
-  const client = await ClientService.findClientByDocument(document);
+    const client = await ClientService.findClientByDocument(document);
 
-  if (!client) {
-    return res.status(404).json({ message: "Cliente não encontrado" });
+    if (!client) {
+      return res.status(404).json({ message: "Cliente não encontrado" });
+    }
+
+    return res.status(200).json(client);
   }
-
-  return res.status(200).json(client);
-});
+);
 
 /**
  * GET /client/:id
  */
-router.get("/client/:id", async (req: Request, res: Response) => {
-  const id = Number(req.params.id);
+router.get(
+  "/client/:id",
+  authMiddleware,
+  async (req: Request, res: Response) => {
+    const id = Number(req.params.id);
 
-  const client = await ClientService.findClientById(id);
+    const client = await ClientService.findClientById(id);
 
-  if (!client) {
-    return res.status(404).json({ message: "Cliente não encontrado" });
+    if (!client) {
+      return res.status(404).json({ message: "Cliente não encontrado" });
+    }
+
+    return res.status(200).json(client);
   }
-
-  return res.status(200).json(client);
-});
+);
 
 /**
  * GET /clients?name=&document=
@@ -46,7 +53,7 @@ interface ClientQueryParams {
   name?: string;
   document?: string;
 }
-router.get("/clients", async (req: Request, res: Response) => {
+router.get("/clients", authMiddleware, async (req: Request, res: Response) => {
   const { name, document } = req.query as ClientQueryParams;
 
   const clients = await ClientService.findAll({ name, document });
@@ -57,7 +64,7 @@ router.get("/clients", async (req: Request, res: Response) => {
 /**
  * POST /client
  */
-router.post("/client", async (req: Request, res: Response) => {
+router.post("/client", authMiddleware, async (req: Request, res: Response) => {
   const validation = validateRequiredFields<Client>(req.body, clientSchema);
 
   if (validation.missingFields) {
@@ -94,7 +101,7 @@ router.post("/client", async (req: Request, res: Response) => {
 /**
  * PATCH /client/:id
  */
-router.patch("/client/:id", (req: Request, res: Response) => {
+router.patch("/client/:id", authMiddleware, (req: Request, res: Response) => {
   const validation = validateRequiredFields<Client>(req.body, clientSchema);
 
   if (validation.missingFields) {
@@ -144,7 +151,7 @@ router.patch("/client/:id", (req: Request, res: Response) => {
 /**
  * DELETE /client/:id
  */
-router.delete("/client/:id", adminMiddleware, (req: Request, res: Response) => {
+router.delete("/client/:id", authMiddleware, (req: Request, res: Response) => {
   const id = Number(req.params.id);
 
   const clientIndex = clients.findIndex((c) => c.id_client === id);

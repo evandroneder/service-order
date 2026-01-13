@@ -5,13 +5,14 @@ import { userSchema } from "../models/schemas/user.schema";
 import { users } from "../mocks/users.mock";
 import { adminMiddleware } from "../middlewares/adm.middleware";
 import { UserService } from "../services/user.service";
+import { authMiddleware } from "../middlewares/auth.middleware";
 
 const router = Router();
 
 /**
  * GET /user/:id
  */
-router.get("/user/:id", async (req: Request, res: Response) => {
+router.get("/user/:id", authMiddleware, async (req: Request, res: Response) => {
   const id = Number(req.params.id);
 
   const user = await UserService.findUserById(id);
@@ -28,7 +29,7 @@ router.get("/user/:id", async (req: Request, res: Response) => {
 interface UserQueryParams {
   name?: string;
 }
-router.get("/users", async (req: Request, res: Response) => {
+router.get("/users", authMiddleware, async (req: Request, res: Response) => {
   const { name } = req.query as UserQueryParams;
 
   const users = await UserService.findAll({ name });
@@ -39,7 +40,7 @@ router.get("/users", async (req: Request, res: Response) => {
 /**
  * POST /user
  */
-router.post("/user", async (req: Request, res: Response) => {
+router.post("/user", authMiddleware, async (req: Request, res: Response) => {
   const validation = validateRequiredFields<User>(req.body, userSchema);
 
   if (validation.missingFields) {
@@ -74,7 +75,7 @@ router.post("/user", async (req: Request, res: Response) => {
  */
 router.patch(
   "/user/:id",
-  // adminMiddleware,
+  authMiddleware,
   async (req: Request, res: Response) => {
     const validation = validateRequiredFields<User>(req.body, userSchema);
 
@@ -113,7 +114,7 @@ router.patch(
  */
 router.delete(
   "/user/:id",
-  //  adminMiddleware,
+  authMiddleware,
   async (req: Request, res: Response) => {
     const id = Number(req.params.id);
 
