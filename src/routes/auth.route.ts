@@ -24,7 +24,7 @@ router.post("/login", async (req: Request, res: Response) => {
   const user = await AuthService.validateUserLogin(username, password);
 
   if (!user) {
-    return res.status(401).json({ message: "Invalid credentials." });
+    return res.status(400).json({ message: "Invalid credentials." });
   }
 
   const { accessToken, refreshToken } = generateTokens({
@@ -68,7 +68,7 @@ router.post("/refresh-token", (req, res) => {
 
     return res.json(tokens);
   } catch {
-    return res.status(401).json({ message: "Unauthorized." });
+    return res.status(400).json({ message: "Unauthorized." });
   }
 });
 
@@ -79,7 +79,7 @@ router.get("/me", authMiddleware, async (req: Request, res: Response) => {
   const user = await UserService.findUserById(req.user.id_user);
 
   if (!user) {
-    return res.status(401).json({ message: "Invalid credentials." });
+    return res.status(400).json({ message: "Invalid credentials." });
   }
 
   return res.json(user);
