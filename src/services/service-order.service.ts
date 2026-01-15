@@ -17,6 +17,7 @@ export class ServiceOrderService {
     SELECT
       so.id_service_order,
       so.description,
+      so.created_at,
       c.name AS company_name,
       cl.name AS client_name,
       SUM(i.quantity * i.value) AS total
@@ -54,7 +55,7 @@ export class ServiceOrderService {
   }
 
   static async create(
-    data: Omit<ServiceOrderView, "id_service_order">
+    data: Omit<ServiceOrderView, "id_service_order" | "created_at">
   ): Promise<ServiceOrderView> {
     const client = await pool.connect();
 

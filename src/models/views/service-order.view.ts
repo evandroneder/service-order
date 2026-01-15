@@ -9,6 +9,7 @@ export interface ServiceOrderListView {
   company_name: string;
   client_name: string;
   total: number;
+  created_at: Date;
 }
 
 export interface ServiceOrderView extends ServiceOrderTable {

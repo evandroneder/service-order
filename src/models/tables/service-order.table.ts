@@ -4,6 +4,7 @@ export interface ServiceOrderTable {
   id_user: number;
   id_client: number;
   id_company: number;
+  created_at: Date;
 }
 
 export interface ItemServiceOrderTable {
