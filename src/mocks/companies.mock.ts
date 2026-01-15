@@ -1,3 +1,3 @@
-import { Company } from "../models/tables/company.table";
+import { CompanyTable } from "../models/tables/company.table";
 
-export let companies: Company[] = [];
+export let companies: CompanyTable[] = [];

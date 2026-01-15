@@ -6,10 +6,11 @@ import {
   serviceOrderSchema,
   serviceOrderUpdateSchema,
 } from "../models/schemas/service-order.schema";
-import { ServiceOrder } from "../models/tables/service-order.table";
+import { ServiceOrderTable } from "../models/tables/service-order.table";
 import { ClientService } from "../services/client.service";
 import { CompanyService } from "../services/company.service";
 import { ServiceOrderService } from "../services/service-order.service";
+import { ServiceOrderView } from "../models/views/service-order.view";
 
 const router = Router();
 
@@ -63,7 +64,7 @@ router.post(
   "/service-order",
   authMiddleware,
   async (req: Request, res: Response) => {
-    const validation = validateRequiredFields<ServiceOrder>(
+    const validation = validateRequiredFields<ServiceOrderView>(
       req.body,
       serviceOrderSchema
     );
@@ -73,7 +74,7 @@ router.post(
     }
 
     const { description, id_client, id_company, products } =
-      req.body as ServiceOrder;
+      req.body as ServiceOrderView;
 
     const created = await ServiceOrderService.create({
       description,
@@ -94,10 +95,9 @@ router.patch(
   "/service-order/:id",
   authMiddleware,
   async (req: Request, res: Response) => {
-    const validation = validateRequiredFields<ServiceOrder>(
-      req.body,
-      serviceOrderUpdateSchema
-    );
+    const validation = validateRequiredFields<
+      Pick<ServiceOrderView, "description" | "products">
+    >(req.body, serviceOrderUpdateSchema);
 
     if (validation.missingFields) {
       return res.status(400).json({ message: validation.message });
@@ -111,7 +111,10 @@ router.patch(
       return res.status(404).json({ message: "Service order not found" });
     }
 
-    const { description, products } = req.body as Partial<ServiceOrder>;
+    const { description, products } = req.body as Pick<
+      ServiceOrderView,
+      "description" | "products"
+    >;
 
     const updated = await ServiceOrderService.update({
       id_service_order: id,

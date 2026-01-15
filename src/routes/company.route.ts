@@ -3,7 +3,7 @@ import { authMiddleware } from "../middlewares/auth.middleware";
 import { companies } from "../mocks/companies.mock";
 import { companySchema } from "../models/schemas/company.schema";
 import { validateRequiredFields } from "../models/schemas/schema";
-import { Company } from "../models/tables/company.table";
+import { CompanyTable } from "../models/tables/company.table";
 import { CompanyService } from "../services/company.service";
 
 const router = Router();
@@ -50,7 +50,10 @@ router.get(
  * POST /company
  */
 router.post("/company", authMiddleware, async (req: Request, res: Response) => {
-  const validation = validateRequiredFields<Company>(req.body, companySchema);
+  const validation = validateRequiredFields<CompanyTable>(
+    req.body,
+    companySchema
+  );
 
   if (validation.missingFields) {
     return res.status(400).json({ message: validation.message });
@@ -66,15 +69,15 @@ router.post("/company", authMiddleware, async (req: Request, res: Response) => {
     complement,
     email,
     logo_url,
-  } = req.body as Company;
+  } = req.body as CompanyTable;
 
-  const companies = await CompanyService.findCompanies({ document });
+  const companies = await CompanyService.findCompanies({ document, name });
 
   if (companies.length > 0) {
     return res.status(404).json({ message: "Empresa já cadastrada." });
   }
 
-  const newCompany: Omit<Company, "id_company"> = {
+  const newCompany: Omit<CompanyTable, "id_company"> = {
     name,
     document,
     phone,
@@ -95,7 +98,10 @@ router.post("/company", authMiddleware, async (req: Request, res: Response) => {
  * PATCH /company/:id
  */
 router.patch("/company/:id", authMiddleware, (req: Request, res: Response) => {
-  const validation = validateRequiredFields<Company>(req.body, companySchema);
+  const validation = validateRequiredFields<CompanyTable>(
+    req.body,
+    companySchema
+  );
 
   if (validation.missingFields) {
     return res.status(400).json({ message: validation.message });
@@ -119,7 +125,7 @@ router.patch("/company/:id", authMiddleware, (req: Request, res: Response) => {
     complement,
     email,
     logo_url,
-  } = req.body as Partial<Company>;
+  } = req.body as Partial<CompanyTable>;
 
   companies[index] = {
     ...companies[index],

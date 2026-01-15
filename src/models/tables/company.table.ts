@@ -1,4 +1,4 @@
-export interface Company {
+export interface CompanyTable {
   id_company: number;
   name: string;
   document: string;

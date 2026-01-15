@@ -1,7 +1,7 @@
-import { User } from "../models/tables/user.table";
+import { UserTable } from "../models/tables/user.table";
 
 /**
  * Mock de banco em memória
  * Substitua por Service / Repository
  */
-export let users: User[] = [];
+export let users: UserTable[] = [];

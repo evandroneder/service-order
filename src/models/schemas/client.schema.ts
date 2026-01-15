@@ -1,7 +1,7 @@
-import { Client } from "../tables/client.table";
+import { ClientTable } from "../tables/client.table";
 import { ValidationSchema } from "./schema";
 
-export const clientSchema: ValidationSchema<Client> = {
+export const clientSchema: ValidationSchema<ClientTable> = {
   id_client: { required: false },
   name: { required: true },
   email: { required: true },

@@ -1,4 +1,6 @@
 import jwt from "jsonwebtoken";
+import { UserTable } from "../models/tables/user.table";
+import { CompanyTable } from "../models/tables/company.table";
 
 const ACCESS_TOKEN_SECRET = process.env.ACCESS_TOKEN_SECRET || "access_secret";
 
@@ -9,9 +11,8 @@ const ACCESS_TOKEN_EXPIRES = "15m";
 const REFRESH_TOKEN_EXPIRES = "7d";
 
 export interface TokenPayload {
-  id_user: number;
-  username: string;
-  role: string;
+  user: Pick<UserTable, "id_user" | "username" | "name" | "email" | "role">;
+  company: CompanyTable;
 }
 
 /**

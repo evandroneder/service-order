@@ -1,10 +1,9 @@
-import { ServiceOrder } from "../tables/service-order.table";
+import { ServiceOrderView } from "../views/service-order.view";
 import { ValidationSchema } from "./schema";
 
-export const serviceOrderSchema: ValidationSchema<ServiceOrder> = {
+export const serviceOrderSchema: ValidationSchema<ServiceOrderView> = {
   id_service_order: { required: false },
 
-  code: { required: false },
   description: { required: true },
 
   id_user: { required: false },
@@ -14,15 +13,9 @@ export const serviceOrderSchema: ValidationSchema<ServiceOrder> = {
   products: { required: true, type: "array" },
 };
 
-export const serviceOrderUpdateSchema: ValidationSchema<ServiceOrder> = {
-  id_service_order: { required: false },
-
-  code: { required: false },
+export const serviceOrderUpdateSchema: ValidationSchema<
+  Pick<ServiceOrderView, "description" | "products">
+> = {
   description: { required: true },
-
-  id_user: { required: false },
-  id_client: { required: false },
-  id_company: { required: false },
-
   products: { required: true, type: "array" },
 };

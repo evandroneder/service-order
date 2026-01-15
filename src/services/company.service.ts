@@ -1,12 +1,14 @@
 import { query, SqlBuilder } from "../core/query";
-import { Company } from "../models/tables/company.table";
+import { CompanyTable } from "../models/tables/company.table";
 
 export class CompanyService {
   /* =========================
    * FIND BY ID
    * ========================= */
-  static async findCompanyById(id_company: number): Promise<Company | null> {
-    const companies = await query<Company>(
+  static async findCompanyById(
+    id_company: number
+  ): Promise<CompanyTable | null> {
+    const companies = await query<CompanyTable>(
       `
         SELECT
           *
@@ -23,8 +25,8 @@ export class CompanyService {
    * FIND (FILTERS)
    * ========================= */
   static async findCompanies(
-    filters?: Partial<Pick<Company, "name" | "document">>
-  ): Promise<Company[]> {
+    filters?: Partial<Pick<CompanyTable, "name" | "document">>
+  ): Promise<CompanyTable[]> {
     const sqlBuilder = new SqlBuilder();
 
     sqlBuilder.whereIf(!!filters?.name, "name", "ILIKE", `%${filters?.name}%`);
@@ -41,15 +43,15 @@ export class CompanyService {
       *
     from companies ${where}`;
 
-    return await query<Company>(sql, params);
+    return await query<CompanyTable>(sql, params);
   }
 
   /* =========================
    * CREATE
    * ========================= */
   static async createCompany(
-    company: Omit<Company, "id_company">
-  ): Promise<Company> {
+    company: Omit<CompanyTable, "id_company">
+  ): Promise<CompanyTable> {
     const {
       name,
       document,
@@ -62,7 +64,7 @@ export class CompanyService {
       logo_url,
     } = company;
 
-    const companies = await query<Company>(
+    const companies = await query<CompanyTable>(
       `
         INSERT INTO companies (
           name,
@@ -95,9 +97,11 @@ export class CompanyService {
   }
 
   /* =========================
-   * UPDATE (PADRÃO OFICIAL)
+   * UPDATE
    * ========================= */
-  static async updateCompany(company: Partial<Company>): Promise<Company> {
+  static async updateCompany(
+    company: Partial<CompanyTable>
+  ): Promise<CompanyTable> {
     const {
       id_company,
       name,
@@ -140,7 +144,7 @@ export class CompanyService {
 
     const { sql, params } = sqlBuilder.buildUpdate("companies");
 
-    const result = await query<Company>(sql, params);
+    const result = await query<CompanyTable>(sql, params);
 
     return result[0];
   }

@@ -1,13 +1,13 @@
 import { comparePassword } from "../core/crypt";
 import { query } from "../core/query";
-import { User } from "../models/tables/user.table";
+import { UserTable } from "../models/tables/user.table";
 
 export class AuthService {
   static async validateUserLogin(
     username: string,
     password: string
-  ): Promise<User | null> {
-    const result = await query<User & { password: string }>(
+  ): Promise<UserTable | null> {
+    const result = await query<UserTable & { password: string }>(
       `
     SELECT id_user, name, email, username, password, role
     FROM users
@@ -30,6 +30,6 @@ export class AuthService {
 
     const { password: _, ...safeUser } = user;
 
-    return safeUser as User;
+    return safeUser as UserTable;
   }
 }

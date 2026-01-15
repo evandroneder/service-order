@@ -1,3 +1,3 @@
-import { Client } from "../models/tables/client.table";
+import { ClientTable } from "../models/tables/client.table";
 
-export let clients: Client[] = [];
+export let clients: ClientTable[] = [];

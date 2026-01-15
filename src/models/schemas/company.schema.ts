@@ -1,7 +1,7 @@
-import { Company } from "../tables/company.table";
+import { CompanyTable } from "../tables/company.table";
 import { ValidationSchema } from "./schema";
 
-export const companySchema: ValidationSchema<Company> = {
+export const companySchema: ValidationSchema<CompanyTable> = {
   id_company: { required: false },
 
   name: { required: true },

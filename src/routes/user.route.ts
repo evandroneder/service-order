@@ -1,11 +1,9 @@
-import { Router, Request, Response } from "express";
-import { User } from "../models/tables/user.table";
+import { Request, Response, Router } from "express";
+import { authMiddleware } from "../middlewares/auth.middleware";
 import { validateRequiredFields } from "../models/schemas/schema";
 import { userSchema } from "../models/schemas/user.schema";
-import { users } from "../mocks/users.mock";
-import { adminMiddleware } from "../middlewares/adm.middleware";
+import { UserTable } from "../models/tables/user.table";
 import { UserService } from "../services/user.service";
-import { authMiddleware } from "../middlewares/auth.middleware";
 
 const router = Router();
 
@@ -41,7 +39,7 @@ router.get("/users", authMiddleware, async (req: Request, res: Response) => {
  * POST /user
  */
 router.post("/user", authMiddleware, async (req: Request, res: Response) => {
-  const validation = validateRequiredFields<User>(req.body, userSchema);
+  const validation = validateRequiredFields<UserTable>(req.body, userSchema);
 
   if (validation.missingFields) {
     return res.status(400).json({
@@ -49,7 +47,7 @@ router.post("/user", authMiddleware, async (req: Request, res: Response) => {
     });
   }
 
-  const { name, username, password, role, email } = req.body as User;
+  const { name, username, password, role, email } = req.body as UserTable;
 
   const users = await UserService.findAll({ username });
 
@@ -57,7 +55,7 @@ router.post("/user", authMiddleware, async (req: Request, res: Response) => {
     return res.status(409).json({ message: "Usuário já existe" });
   }
 
-  const newUser: Partial<User> = {
+  const newUser: Partial<UserTable> = {
     name,
     username,
     password,
@@ -77,7 +75,7 @@ router.patch(
   "/user/:id",
   authMiddleware,
   async (req: Request, res: Response) => {
-    const validation = validateRequiredFields<User>(req.body, userSchema);
+    const validation = validateRequiredFields<UserTable>(req.body, userSchema);
 
     if (validation.missingFields) {
       return res.status(400).json({
@@ -86,7 +84,7 @@ router.patch(
     }
 
     const id = Number(req.params.id);
-    const { name, username, password, role, email } = req.body as User;
+    const { name, username, password, role, email } = req.body as UserTable;
 
     const user = await UserService.findUserById(id);
 
@@ -94,7 +92,7 @@ router.patch(
       return res.status(404).json({ message: "Usuário não encontrado" });
     }
 
-    const updateUser: Partial<User> = {
+    const updateUser: Partial<UserTable> = {
       id_user: id,
       name,
       username,

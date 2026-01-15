@@ -1,10 +1,10 @@
 import { hashPassword } from "../core/crypt";
 import { query, SqlBuilder } from "../core/query";
-import { User } from "../models/tables/user.table";
+import { UserTable } from "../models/tables/user.table";
 
 export class UserService {
-  static async findUserById(id: number): Promise<User | null> {
-    const users = await query<User>(
+  static async findUserById(id: number): Promise<UserTable | null> {
+    const users = await query<UserTable>(
       "SELECT id_user, name, email, username FROM users WHERE id_user = $1",
       [id]
     );
@@ -12,7 +12,7 @@ export class UserService {
     return users[0] || null;
   }
 
-  static async findAll(user?: Partial<User>): Promise<User[] | null> {
+  static async findAll(user?: Partial<UserTable>): Promise<UserTable[] | null> {
     const sqlBuilder = new SqlBuilder();
 
     sqlBuilder.whereIf(!!user?.name, "name", "ILIKE", `%${user?.name}%`);
@@ -28,15 +28,15 @@ export class UserService {
     ORDER BY name
   `;
 
-    const users = await query<User>(querySQL, params);
+    const users = await query<UserTable>(querySQL, params);
 
     return users.length ? users : null;
   }
 
-  static async createUser(user: Partial<User>): Promise<User> {
+  static async createUser(user: Partial<UserTable>): Promise<UserTable> {
     const { name, email, username, password, role } = user;
 
-    const result = await query<User>(
+    const result = await query<UserTable>(
       `
     INSERT INTO users (name, email, username, password, role)
     VALUES ($1, $2, $3, $4, $5)
@@ -47,7 +47,7 @@ export class UserService {
     return result[0];
   }
 
-  static async updateUser(user: Partial<User>): Promise<User> {
+  static async updateUser(user: Partial<UserTable>): Promise<UserTable> {
     const { name, email, username, password, role, id_user } = user;
 
     const sqlBuilder = new SqlBuilder();
@@ -64,7 +64,7 @@ export class UserService {
 
     const { sql, params } = sqlBuilder.buildUpdate("users");
 
-    const result = await query<User>(sql, params);
+    const result = await query<UserTable>(sql, params);
 
     return result[0];
   }
@@ -74,6 +74,6 @@ export class UserService {
     sqlBuilder.where("id_user", "=", id);
     const { where, params } = sqlBuilder.build();
 
-    await query<User>(`DELETE FROM USERS ${where}`, params);
+    await query<UserTable>(`DELETE FROM USERS ${where}`, params);
   }
 }

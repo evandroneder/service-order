@@ -1,4 +1,4 @@
-export interface Client {
+export interface ClientTable {
   id_client: number;
   name: string;
   email: string;

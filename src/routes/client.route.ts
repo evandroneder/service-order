@@ -3,7 +3,7 @@ import { authMiddleware } from "../middlewares/auth.middleware";
 import { clients } from "../mocks/clients.mock";
 import { clientSchema } from "../models/schemas/client.schema";
 import { validateRequiredFields } from "../models/schemas/schema";
-import { Client } from "../models/tables/client.table";
+import { ClientTable } from "../models/tables/client.table";
 import { ClientService } from "../services/client.service";
 
 const router = Router();
@@ -65,7 +65,10 @@ router.get("/clients", authMiddleware, async (req: Request, res: Response) => {
  * POST /client
  */
 router.post("/client", authMiddleware, async (req: Request, res: Response) => {
-  const validation = validateRequiredFields<Client>(req.body, clientSchema);
+  const validation = validateRequiredFields<ClientTable>(
+    req.body,
+    clientSchema
+  );
 
   if (validation.missingFields) {
     return res.status(400).json({
@@ -74,7 +77,7 @@ router.post("/client", authMiddleware, async (req: Request, res: Response) => {
   }
 
   const { name, email, phone, document, cep, street, number, complement } =
-    req.body as Client;
+    req.body as ClientTable;
 
   const clientExists = await ClientService.findClientByDocument(document);
 
@@ -102,7 +105,10 @@ router.post("/client", authMiddleware, async (req: Request, res: Response) => {
  * PATCH /client/:id
  */
 router.patch("/client/:id", authMiddleware, (req: Request, res: Response) => {
-  const validation = validateRequiredFields<Client>(req.body, clientSchema);
+  const validation = validateRequiredFields<ClientTable>(
+    req.body,
+    clientSchema
+  );
 
   if (validation.missingFields) {
     return res.status(400).json({
@@ -112,7 +118,7 @@ router.patch("/client/:id", authMiddleware, (req: Request, res: Response) => {
 
   const id = Number(req.params.id);
   const { name, email, phone, document, cep, street, number, complement } =
-    req.body as Client;
+    req.body as ClientTable;
 
   const clientIndex = clients.findIndex((c) => c.id_client === id);
 

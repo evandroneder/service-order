@@ -1,3 +1,3 @@
-import { ServiceOrder } from "../models/tables/service-order.table";
+import { ServiceOrderTable } from "../models/tables/service-order.table";
 
-export let serviceOrders: ServiceOrder[] = [];
+export let serviceOrders: ServiceOrderTable[] = [];

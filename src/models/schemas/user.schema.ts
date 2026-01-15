@@ -1,7 +1,7 @@
-import { User } from "../tables/user.table";
+import { UserTable } from "../tables/user.table";
 import { ValidationSchema } from "./schema";
 
-export const userSchema: ValidationSchema<User> = {
+export const userSchema: ValidationSchema<UserTable> = {
   id_user: { required: false },
   name: { required: true },
   email: { required: true },

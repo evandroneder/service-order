@@ -1,14 +1,17 @@
 import pool from "../core/database";
 import { query, SqlBuilder } from "../core/query";
 import {
-  ItemServiceOrder,
-  ServiceOrder,
+  ItemServiceOrderTable,
+  ServiceOrderTable,
 } from "../models/tables/service-order.table";
-import { ServiceOrderListView } from "../models/views/service-order.view";
+import {
+  ServiceOrderListView,
+  ServiceOrderView,
+} from "../models/views/service-order.view";
 
 export class ServiceOrderService {
   static async findAll(
-    filters?: Partial<ServiceOrder>
+    filters?: Partial<ServiceOrderTable>
   ): Promise<ServiceOrderListView[]> {
     const orders = await query<ServiceOrderListView>(`
     SELECT
@@ -31,13 +34,13 @@ export class ServiceOrderService {
 
     return orders;
   }
-  static async findOrderById(id: number): Promise<ServiceOrder | null> {
-    const orders = await query<ServiceOrder>(
+  static async findOrderById(id: number): Promise<ServiceOrderTable | null> {
+    const orders = await query<ServiceOrderTable>(
       "SELECT * FROM service_orders WHERE id_service_order = $1",
       [id]
     );
 
-    const products = await query<ItemServiceOrder>(
+    const products = await query<ItemServiceOrderTable>(
       `SELECT * FROM item_service_orders where id_service_order = $1`,
       [id]
     );
@@ -45,14 +48,14 @@ export class ServiceOrderService {
     const serviceOrder = {
       ...orders[0],
       products,
-    } as ServiceOrder;
+    } as ServiceOrderTable;
 
     return serviceOrder || null;
   }
 
   static async create(
-    data: Omit<ServiceOrder, "id_service_order" | "code">
-  ): Promise<ServiceOrder> {
+    data: Omit<ServiceOrderView, "id_service_order">
+  ): Promise<ServiceOrderView> {
     const client = await pool.connect();
 
     try {
@@ -61,7 +64,7 @@ export class ServiceOrderService {
       /* ===============================
          INSERT SERVICE ORDER
       =============================== */
-      const serviceOrderResult = await client.query<ServiceOrder>(
+      const serviceOrderResult = await client.query<ServiceOrderTable>(
         `
           INSERT INTO service_orders (
             description,
@@ -75,13 +78,16 @@ export class ServiceOrderService {
         [data.description, data.id_client, data.id_company, data.id_user]
       );
 
-      const createdOrder = serviceOrderResult.rows[0];
+      const viewOrder: ServiceOrderView = {
+        ...serviceOrderResult.rows[0],
+        products: [],
+      };
 
       /* ===============================
          INSERT ITEMS
       =============================== */
       for (const item of data.products) {
-        const createdOrderItem = await client.query<ItemServiceOrder>(
+        const createdOrderItem = await client.query<ItemServiceOrderTable>(
           `
             INSERT INTO item_service_orders (
               id_service_order,
@@ -93,24 +99,19 @@ export class ServiceOrderService {
             RETURNING *
           `,
           [
-            createdOrder.id_service_order,
+            viewOrder.id_service_order,
             item.quantity,
             item.description,
             item.value,
           ]
         );
 
-        if (!createdOrder.products) {
-          createdOrder.products = [createdOrderItem.rows[0]];
-          continue;
-        }
-
-        createdOrder.products.push(createdOrderItem.rows[0]);
+        viewOrder.products.push(createdOrderItem.rows[0]);
       }
 
       await client.query("COMMIT");
 
-      return createdOrder;
+      return viewOrder;
     } catch (error) {
       await client.query("ROLLBACK");
       throw error;
@@ -120,15 +121,15 @@ export class ServiceOrderService {
   }
 
   static async update(
-    data: Partial<ServiceOrder>
-  ): Promise<ServiceOrder | null> {
+    data: Partial<ServiceOrderView>
+  ): Promise<ServiceOrderView | null> {
     const client = await pool.connect();
 
     try {
       await client.query("BEGIN");
 
       /* ===============================
-         INSERT SERVICE ORDER
+         UPDATE SERVICE ORDER
       =============================== */
 
       const sqlBuilder = new SqlBuilder();
@@ -143,12 +144,15 @@ export class ServiceOrderService {
 
       const { sql, params } = sqlBuilder.buildUpdate("service_orders");
 
-      const result = await client.query(sql, params);
+      const result = await client.query<ServiceOrderTable>(sql, params);
 
-      const updatedOrder = result.rows[0];
+      const updatedOrder: ServiceOrderView = {
+        ...result.rows[0],
+        products: [],
+      };
 
       /* ===============================
-         INSERT ITEMS
+         REMOVER AND INSERT ITEMS
       =============================== */
 
       await client.query(
@@ -157,7 +161,7 @@ export class ServiceOrderService {
       );
 
       for (const item of data.products ?? []) {
-        const createdOrderItem = await client.query<ItemServiceOrder>(
+        const createdOrderItem = await client.query<ItemServiceOrderTable>(
           `
             INSERT INTO item_service_orders (
               id_service_order,
@@ -175,11 +179,6 @@ export class ServiceOrderService {
             item.value,
           ]
         );
-
-        if (!updatedOrder.products) {
-          updatedOrder.products = [createdOrderItem.rows[0]];
-          continue;
-        }
 
         updatedOrder.products.push(createdOrderItem.rows[0]);
       }

@@ -1,9 +1,9 @@
-import { Client } from "../models/tables/client.table";
+import { ClientTable } from "../models/tables/client.table";
 import { query, SqlBuilder } from "../core/query";
 
 export class ClientService {
-  static async findClientById(id: number): Promise<Client | null> {
-    const clients = await query<Client>(
+  static async findClientById(id: number): Promise<ClientTable | null> {
+    const clients = await query<ClientTable>(
       `
         SELECT *
         FROM clients
@@ -15,8 +15,10 @@ export class ClientService {
     return clients[0] || null;
   }
 
-  static async findClientByDocument(document: string): Promise<Client | null> {
-    const clients = await query<Client>(
+  static async findClientByDocument(
+    document: string
+  ): Promise<ClientTable | null> {
+    const clients = await query<ClientTable>(
       `
         SELECT *
         FROM clients
@@ -28,8 +30,8 @@ export class ClientService {
     return clients[0] || null;
   }
 
-  static async findAll(params?: Partial<Client>): Promise<Client[]> {
-    return query<Client>(
+  static async findAll(params?: Partial<ClientTable>): Promise<ClientTable[]> {
+    return query<ClientTable>(
       `
         SELECT *
         FROM clients
@@ -38,8 +40,10 @@ export class ClientService {
     );
   }
 
-  static async create(data: Omit<Client, "id_client">): Promise<Client> {
-    const clients = await query<Client>(
+  static async create(
+    data: Omit<ClientTable, "id_client">
+  ): Promise<ClientTable> {
+    const clients = await query<ClientTable>(
       `
         INSERT INTO clients (
           name,
@@ -72,7 +76,9 @@ export class ClientService {
   /* ===========================
    * UPDATE (PATCH SAFE)
    * =========================== */
-  static async updateClient(client: Partial<Client>): Promise<Client> {
+  static async updateClient(
+    client: Partial<ClientTable>
+  ): Promise<ClientTable> {
     const {
       id_client,
       name,
@@ -112,7 +118,7 @@ export class ClientService {
 
     const { sql, params } = sqlBuilder.buildUpdate("clients");
 
-    const result = await query<Client>(sql, params);
+    const result = await query<ClientTable>(sql, params);
 
     return result[0];
   }

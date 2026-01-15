@@ -6,6 +6,7 @@ import { validateRequiredFields } from "../models/schemas/schema";
 import { AuthService } from "../services/auth.service";
 import { authMiddleware } from "../middlewares/auth.middleware";
 import { UserService } from "../services/user.service";
+import { CompanyService } from "../services/company.service";
 
 const router = Router();
 
@@ -27,21 +28,22 @@ router.post("/login", async (req: Request, res: Response) => {
     return res.status(400).json({ message: "Invalid credentials." });
   }
 
-  const { accessToken, refreshToken } = generateTokens({
-    id_user: user.id_user,
-    username: user.username,
-    role: user.role,
-  });
+  const companies = await CompanyService.findCompanies();
 
-  return res.json({
-    accessToken,
-    refreshToken,
+  const { accessToken, refreshToken } = generateTokens({
     user: {
       id_user: user.id_user,
       name: user.name,
       username: user.username,
       role: user.role,
+      email: user.email,
     },
+    company: companies[0],
+  });
+
+  return res.json({
+    accessToken,
+    refreshToken,
   });
 });
 
@@ -61,9 +63,8 @@ router.post("/refresh-token", (req, res) => {
     const payload = verifyRefreshToken(refreshToken);
 
     const tokens = generateTokens({
-      id_user: payload.id_user,
-      username: payload.username,
-      role: payload.role,
+      user: payload.user,
+      company: payload.company,
     });
 
     return res.json(tokens);
