@@ -31,13 +31,27 @@ export class ClientService {
   }
 
   static async findAll(params?: Partial<ClientTable>): Promise<ClientTable[]> {
-    return query<ClientTable>(
-      `
-        SELECT *
-        FROM clients
-        ORDER BY name
-      `
+    const sql = new SqlBuilder();
+
+    sql.whereIf(
+      !!params?.name,
+      "LOWER(name)",
+      "ILIKE",
+      `%${params?.name?.toLowerCase()}%`
     );
+
+    sql.whereIf(!!params?.document, "document", "=", params?.document);
+
+    const result = sql.build();
+
+    const SQL = `
+    SELECT *
+    FROM clients
+    ${result.where}
+    ORDER BY name
+  `;
+
+    return query<ClientTable>(SQL, result.params);
   }
 
   static async create(

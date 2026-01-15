@@ -15,19 +15,19 @@ export class SqlBuilder {
   private conditions: string[] = [];
   private params: any[] = [];
 
-  where(condition: string, operator: "ILIKE" | "=", value: any) {
+  where(field: string, operator: "ILIKE" | "=", value: any) {
     this.params.push(value);
-    this.conditions.push(`${condition} ${operator} $${this.params.length}`);
+    this.conditions.push(`${field} ${operator} $${this.params.length}`);
   }
 
   whereIf(
     predicate: boolean | undefined,
-    condition: string,
+    field: string,
     operator: "ILIKE" | "=",
     value: any
   ) {
     if (!predicate) return;
-    this.where(condition, operator, value);
+    this.where(field, operator, value);
   }
 
   build() {
