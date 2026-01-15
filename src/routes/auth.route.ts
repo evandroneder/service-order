@@ -82,7 +82,7 @@ router.post("/refresh-token", (req, res) => {
       maxAge: 1000 * 60 * 60 * 24 * 7, // 7 dias (ajuste se quiser)
     });
 
-    return res.json(accessToken);
+    return res.json({ accessToken });
   } catch {
     return res.status(401).json({ message: "Unauthorized." });
   }
@@ -104,7 +104,7 @@ router.get("/me", authMiddleware, async (req: Request, res: Response) => {
 router.post("/logout", authMiddleware, async (req: Request, res: Response) => {
   res.clearCookie("refresh_token", { path: "/refresh-token" });
 
-  return res.status(200);
+  return res.status(200).json();
 });
 
 export default router;

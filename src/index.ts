@@ -15,6 +15,8 @@ import companyRoutes from "./routes/company.route";
 import serviceOrderRoutes from "./routes/service-order.route";
 import userRoutes from "./routes/user.route";
 
+app.use(cookieParser());
+
 app.use(
   cors({
     origin: HOST,
@@ -23,8 +25,6 @@ app.use(
 );
 
 app.use(express.json());
-
-app.use(cookieParser());
 
 app.use("/", authRoutes);
 app.use("/", serviceOrderRoutes);
