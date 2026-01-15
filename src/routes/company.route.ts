@@ -50,10 +50,7 @@ router.get(
  * POST /company
  */
 router.post("/company", authMiddleware, async (req: Request, res: Response) => {
-  const validation = validateRequiredFields<CompanyTable>(
-    req.body,
-    companySchema
-  );
+  const validation = validateRequiredFields(req.body, companySchema);
 
   if (validation.missingFields) {
     return res.status(400).json({ message: validation.message });
@@ -98,10 +95,7 @@ router.post("/company", authMiddleware, async (req: Request, res: Response) => {
  * PATCH /company/:id
  */
 router.patch("/company/:id", authMiddleware, (req: Request, res: Response) => {
-  const validation = validateRequiredFields<CompanyTable>(
-    req.body,
-    companySchema
-  );
+  const validation = validateRequiredFields(req.body, companySchema);
 
   if (validation.missingFields) {
     return res.status(400).json({ message: validation.message });

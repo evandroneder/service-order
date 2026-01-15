@@ -1,15 +1,12 @@
 import { ServiceOrderView } from "../views/service-order.view";
 import { ValidationSchema } from "./schema";
 
-export const serviceOrderSchema: ValidationSchema<ServiceOrderView> = {
-  id_service_order: { required: false },
-
+export const serviceOrderCreateSchema: ValidationSchema<
+  Pick<ServiceOrderView, "id_client" | "products" | "description">
+> = {
   description: { required: true },
 
-  id_user: { required: false },
-  id_client: { required: true },
-  id_company: { required: true },
-
+  id_client: { required: false },
   products: { required: true, type: "array" },
 };
 

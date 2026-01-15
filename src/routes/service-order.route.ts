@@ -3,14 +3,13 @@ import { authMiddleware } from "../middlewares/auth.middleware";
 import { serviceOrders } from "../mocks/service-orders.mock";
 import { validateRequiredFields } from "../models/schemas/schema";
 import {
-  serviceOrderSchema,
+  serviceOrderCreateSchema,
   serviceOrderUpdateSchema,
 } from "../models/schemas/service-order.schema";
-import { ServiceOrderTable } from "../models/tables/service-order.table";
+import { ServiceOrderView } from "../models/views/service-order.view";
 import { ClientService } from "../services/client.service";
 import { CompanyService } from "../services/company.service";
 import { ServiceOrderService } from "../services/service-order.service";
-import { ServiceOrderView } from "../models/views/service-order.view";
 
 const router = Router();
 
@@ -64,9 +63,9 @@ router.post(
   "/service-order",
   authMiddleware,
   async (req: Request, res: Response) => {
-    const validation = validateRequiredFields<ServiceOrderView>(
+    const validation = validateRequiredFields(
       req.body,
-      serviceOrderSchema
+      serviceOrderCreateSchema
     );
 
     if (validation.missingFields) {
@@ -79,9 +78,9 @@ router.post(
     const created = await ServiceOrderService.create({
       description,
       id_client,
-      id_company,
       products,
       id_user: req.user?.id_user,
+      id_company: req.company?.id_company,
     });
 
     return res.status(201).json(created);
@@ -95,9 +94,10 @@ router.patch(
   "/service-order/:id",
   authMiddleware,
   async (req: Request, res: Response) => {
-    const validation = validateRequiredFields<
-      Pick<ServiceOrderView, "description" | "products">
-    >(req.body, serviceOrderUpdateSchema);
+    const validation = validateRequiredFields(
+      req.body,
+      serviceOrderUpdateSchema
+    );
 
     if (validation.missingFields) {
       return res.status(400).json({ message: validation.message });

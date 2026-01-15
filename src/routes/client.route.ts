@@ -65,10 +65,7 @@ router.get("/clients", authMiddleware, async (req: Request, res: Response) => {
  * POST /client
  */
 router.post("/client", authMiddleware, async (req: Request, res: Response) => {
-  const validation = validateRequiredFields<ClientTable>(
-    req.body,
-    clientSchema
-  );
+  const validation = validateRequiredFields(req.body, clientSchema);
 
   if (validation.missingFields) {
     return res.status(400).json({
@@ -105,10 +102,7 @@ router.post("/client", authMiddleware, async (req: Request, res: Response) => {
  * PATCH /client/:id
  */
 router.patch("/client/:id", authMiddleware, (req: Request, res: Response) => {
-  const validation = validateRequiredFields<ClientTable>(
-    req.body,
-    clientSchema
-  );
+  const validation = validateRequiredFields(req.body, clientSchema);
 
   if (validation.missingFields) {
     return res.status(400).json({

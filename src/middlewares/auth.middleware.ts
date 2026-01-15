@@ -19,7 +19,8 @@ export function authMiddleware(
   try {
     const decoded = verifyAccessToken(token);
 
-    req.user = decoded;
+    req.user = decoded.user;
+    req.company = decoded.company;
     return next();
   } catch (e) {
     if (e instanceof TokenExpiredError) {
