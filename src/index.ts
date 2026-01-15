@@ -8,6 +8,7 @@ const app = express();
 const PORT = process.env.PORT;
 const HOST = process.env.HOST;
 
+import cookieParser from "cookie-parser";
 import authRoutes from "./routes/auth.route";
 import clientRoutes from "./routes/client.route";
 import companyRoutes from "./routes/company.route";
@@ -22,6 +23,8 @@ app.use(
 );
 
 app.use(express.json());
+
+app.use(cookieParser());
 
 app.use("/", authRoutes);
 app.use("/", serviceOrderRoutes);

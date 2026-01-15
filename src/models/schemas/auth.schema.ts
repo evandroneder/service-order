@@ -5,7 +5,3 @@ export const authSchema: ValidationSchema<Auth> = {
   username: { required: true },
   password: { required: true },
 };
-
-export const refreshTokenSchema: ValidationSchema<{ refreshToken: string }> = {
-  refreshToken: { required: true },
-};

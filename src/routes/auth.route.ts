@@ -1,12 +1,12 @@
 import { Request, Response, Router } from "express";
 import { generateTokens, verifyRefreshToken } from "../core/jwt";
-import { Auth, RefreshToken } from "../models/entities/auth.entity";
-import { authSchema, refreshTokenSchema } from "../models/schemas/auth.schema";
+import { authMiddleware } from "../middlewares/auth.middleware";
+import { Auth } from "../models/entities/auth.entity";
+import { authSchema } from "../models/schemas/auth.schema";
 import { validateRequiredFields } from "../models/schemas/schema";
 import { AuthService } from "../services/auth.service";
-import { authMiddleware } from "../middlewares/auth.middleware";
-import { UserService } from "../services/user.service";
 import { CompanyService } from "../services/company.service";
+import { UserService } from "../services/user.service";
 
 const router = Router();
 
@@ -17,7 +17,7 @@ router.post("/login", async (req: Request, res: Response) => {
   const validation = validateRequiredFields(req.body, authSchema);
 
   if (validation.missingFields) {
-    return res.status(400).json({ message: validation.message });
+    return res.status(401).json({ message: validation.message });
   }
 
   const { username, password } = req.body as Auth;
@@ -25,7 +25,7 @@ router.post("/login", async (req: Request, res: Response) => {
   const user = await AuthService.validateUserLogin(username, password);
 
   if (!user) {
-    return res.status(400).json({ message: "Invalid credentials." });
+    return res.status(401).json({ message: "Invalid credentials." });
   }
 
   const companies = await CompanyService.findCompanies();
@@ -41,9 +41,17 @@ router.post("/login", async (req: Request, res: Response) => {
     company: companies[0],
   });
 
+  // 🔐 Cookie seguro com refresh token
+  res.cookie("refresh_token", refreshToken, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "strict",
+    path: "/refresh-token", // importante
+    maxAge: 1000 * 60 * 60 * 24 * 7, // 7 dias (ajuste se quiser)
+  });
+
   return res.json({
     accessToken,
-    refreshToken,
   });
 });
 
@@ -51,25 +59,32 @@ router.post("/login", async (req: Request, res: Response) => {
  * POST /refresh-token
  */
 router.post("/refresh-token", (req, res) => {
-  const validation = validateRequiredFields(req.body, refreshTokenSchema);
+  const refreshToken = req.cookies?.refresh_token;
 
-  if (validation.missingFields) {
-    return res.status(400).json({ message: validation.message });
+  if (!refreshToken) {
+    return res.status(401).json({ message: "Unauthorized." });
   }
-
-  const { refreshToken } = req.body as RefreshToken;
 
   try {
     const payload = verifyRefreshToken(refreshToken);
 
-    const tokens = generateTokens({
+    const { accessToken } = generateTokens({
       user: payload.user,
       company: payload.company,
     });
 
-    return res.json(tokens);
+    // 🔐 Cookie seguro com refresh token
+    res.cookie("refresh_token", refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      path: "/refresh-token", // importante
+      maxAge: 1000 * 60 * 60 * 24 * 7, // 7 dias (ajuste se quiser)
+    });
+
+    return res.json(accessToken);
   } catch {
-    return res.status(400).json({ message: "Unauthorized." });
+    return res.status(401).json({ message: "Unauthorized." });
   }
 });
 
@@ -80,10 +95,16 @@ router.get("/me", authMiddleware, async (req: Request, res: Response) => {
   const user = await UserService.findUserById(req.user.id_user);
 
   if (!user) {
-    return res.status(400).json({ message: "Invalid credentials." });
+    return res.status(401).json({ message: "Invalid credentials." });
   }
 
   return res.json(user);
+});
+
+router.post("/logout", authMiddleware, async (req: Request, res: Response) => {
+  res.clearCookie("refresh_token", { path: "/refresh-token" });
+
+  return res.status(200);
 });
 
 export default router;
