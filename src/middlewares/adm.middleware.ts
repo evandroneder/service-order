@@ -20,13 +20,14 @@ export function adminMiddleware(
   try {
     const decoded = verifyAccessToken(token);
 
-    if (decoded.role !== RolesEnum.ADMIN) {
+    if (decoded.user?.role !== RolesEnum.ADMIN) {
       return res.status(403).json({
         message: "Access denied.",
       });
     }
 
-    req.user = decoded;
+    req.user = decoded?.user;
+    req.company = decoded?.company;
     return next();
   } catch (e) {
     if (e instanceof TokenExpiredError) {
