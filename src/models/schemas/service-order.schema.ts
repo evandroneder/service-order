@@ -5,8 +5,7 @@ export const serviceOrderCreateSchema: ValidationSchema<
   Pick<ServiceOrderView, "id_client" | "products" | "description">
 > = {
   description: { required: true },
-
-  id_client: { required: false },
+  id_client: { required: true },
   products: { required: true, type: "array" },
 };
 

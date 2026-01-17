@@ -72,8 +72,7 @@ router.post(
       return res.status(400).json({ message: validation.message });
     }
 
-    const { description, id_client, id_company, products } =
-      req.body as ServiceOrderView;
+    const { description, id_client, products } = req.body as ServiceOrderView;
 
     const created = await ServiceOrderService.create({
       description,
